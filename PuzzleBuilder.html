@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puzzle Experience Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1714;
+    --paper: #faf8f4;
+    --cream: #f3efe6;
+    --coral: #d85a30;
+    --coral-light: #f9ede7;
+    --teal: #2a7c6f;
+    --teal-light: #e4f2f0;
+    --gold: #c49a3c;
+    --muted: #8a8580;
+    --border: #e0dbd0;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── TOP BAR ── */
+  header {
+    background: var(--ink);
+    color: white;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  header h1 span { color: var(--gold); font-style: italic; }
+  .header-actions { display: flex; gap: 10px; }
+  .btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-ghost { background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.25); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); color: white; }
+  .btn-coral { background: var(--coral); color: white; }
+  .btn-coral:hover { background: #c04f28; }
+  .btn-teal { background: var(--teal); color: white; }
+  .btn-teal:hover { background: #236659; }
+  .btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--border); }
+  .btn-outline:hover { border-color: var(--ink); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-danger { background: #f5e8e5; color: #b03a20; border: 1px solid #e8c5bc; }
+  .btn-danger:hover { background: #ead5d0; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    background: var(--cream);
+    border-bottom: 1.5px solid var(--border);
+    padding: 0 32px;
+    gap: 0;
+  }
+  .tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    transition: all 0.15s;
+    margin-bottom: -1.5px;
+    white-space: nowrap;
+  }
+  .tab.active { color: var(--coral); border-bottom-color: var(--coral); }
+  .tab:hover:not(.active) { color: var(--ink); }
+  .tab .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--coral);
+    color: white;
+    border-radius: 10px;
+    font-size: 10px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    font-weight: 600;
+  }
+
+  /* ── LAYOUT ── */
+  .main { display: flex; min-height: calc(100vh - 109px); }
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--cream);
+    border-right: 1.5px solid var(--border);
+    padding: 20px 16px;
+    overflow-y: auto;
+  }
+  .content {
+    flex: 1;
+    padding: 28px 32px;
+    overflow-y: auto;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar-section { margin-bottom: 24px; }
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  .member-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.12s;
+    margin-bottom: 3px;
+    position: relative;
+  }
+  .member-card:hover { background: var(--border); }
+  .member-card.active { background: var(--coral-light); }
+  .member-card.active .member-name { color: var(--coral); }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .member-name { font-size: 13px; font-weight: 500; }
+  .member-role { font-size: 11px; color: var(--muted); }
+  .member-complete {
+    margin-left: auto;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .member-complete.done { background: var(--teal); }
+  .add-member-btn {
+    width: 100%;
+    padding: 8px;
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 6px;
+  }
+  .add-member-btn:hover { border-color: var(--coral); color: var(--coral); background: var(--coral-light); }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--coral);
+  }
+
+  /* ── FORM ELEMENTS ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .form-full { grid-column: 1 / -1; }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  input[type=text], input[type=email], textarea, select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    background: var(--paper);
+    color: var(--ink);
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--coral); }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  .field { margin-bottom: 14px; }
+
+  /* ── PUZZLE ITEM ROWS ── */
+  .puzzle-item {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: start;
+    gap: 12px;
+  }
+  .puzzle-item:hover { border-color: #c8c2b5; }
+  .item-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .item-body { flex: 1; }
+  .item-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .type-id { background: #e8f0fc; color: #1a56b0; }
+  .type-classifieds { background: #fce8e8; color: #b01a1a; }
+  .type-sushi { background: #fff3e0; color: #b06a00; }
+  .type-letter { background: #e8f5e9; color: #1a7b30; }
+  .type-emoji { background: #f3e5f5; color: #6a1ab0; }
+  .type-qr { background: #e0f7fa; color: #006b7b; }
+  .type-image { background: #fce4ec; color: #9c0045; }
+  .type-custom { background: #f5f5f5; color: #555; }
+  .item-controls { display: flex; gap: 6px; margin-top: 2px; }
+
+  /* ── CLUE CHAIN ── */
+  .clue-chain {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .chain-step {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .chain-spine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 32px;
+    flex-shrink: 0;
+  }
+  .chain-node {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .chain-line {
+    width: 2px;
+    background: var(--border);
+    flex: 1;
+    min-height: 20px;
+  }
+  .chain-content {
+    flex: 1;
+    padding-bottom: 20px;
+  }
+  .chain-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 4px;
+  }
+  .chain-card:hover { border-color: #c8c2b5; }
+  .chain-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .chain-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .chain-text em { color: var(--coral); font-style: normal; font-weight: 500; }
+
+  /* ── OVERVIEW TABLE ── */
+  .overview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .overview-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--cream);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    border-bottom: 1.5px solid var(--border);
+  }
+  .overview-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .overview-table tr:hover td { background: var(--paper); }
+  .overview-table tr:last-child td { border-bottom: none; }
+
+  /* ── STATUS CHIPS ── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .chip-empty { background: var(--cream); color: var(--muted); }
+  .chip-partial { background: #fff8e0; color: #9a7500; }
+  .chip-done { background: var(--teal-light); color: var(--teal); }
+
+  /* ── PUZZLE TYPE SELECTOR ── */
+  .puzzle-types {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .puzzle-type-btn {
+    padding: 12px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .puzzle-type-btn:hover { border-color: var(--coral); background: var(--coral-light); }
+  .puzzle-type-btn.selected { border-color: var(--coral); background: var(--coral-light); }
+  .puzzle-type-icon { font-size: 22px; margin-bottom: 5px; }
+  .puzzle-type-label { font-size: 11px; font-weight: 500; color: var(--ink); }
+  .puzzle-type-desc { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  /* ── INFO BLOCKS ── */
+  .info-block {
+    background: var(--teal-light);
+    border: 1px solid #b5dbd7;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #1e5f56;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .info-block strong { font-weight: 600; }
+  .tip-block {
+    background: #fff8e8;
+    border: 1px solid #f0d98b;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #7a5c00;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  /* ── EXPORT PREVIEW ── */
+  .export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .export-card {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .export-card:hover { border-color: var(--coral); box-shadow: 0 4px 20px rgba(216,90,48,0.12); }
+  .export-card-header {
+    padding: 14px 18px 10px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+  }
+  .export-card-title { font-size: 14px; font-weight: 600; }
+  .export-card-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .export-card-body { padding: 14px 18px; }
+  .export-card-body li { font-size: 12px; color: var(--muted); margin-bottom: 5px; padding-left: 12px; position: relative; }
+  .export-card-body li::before { content: "→"; position: absolute; left: 0; color: var(--coral); }
+
+  /* ── AVATAR COLORS ── */
+  .av0 { background: #fce8e0; color: #c04928; }
+  .av1 { background: #e0f2ee; color: #1a6b5e; }
+  .av2 { background: #e8effe; color: #2244aa; }
+  .av3 { background: #f8f0e0; color: #8a5c00; }
+  .av4 { background: #f0e8f8; color: #6a20a0; }
+  .av5 { background: #e8f8f0; color: #1a8044; }
+  .av6 { background: #fce8f4; color: #9c1060; }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,23,20,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    width: 520px;
+    max-width: 95vw;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+  /* ── PRINT ── */
+  @media print {
+    header, .tabs, .sidebar, .header-actions, .btn { display: none !important; }
+    .content { padding: 0; }
+    .card { break-inside: avoid; }
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 14px; }
+  .empty-state p { font-size: 14px; line-height: 1.6; max-width: 340px; margin: 0 auto 16px; }
+
+  /* hidden */
+  .hidden { display: none !important; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; background: var(--cream); color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Puzzle Experience <span>Builder</span></h1>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="showTab('overview')">📊 Overview</button>
+    <button class="btn btn-teal" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn btn-coral" onclick="showModal('newExperience')">+ New Experience</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('members')" id="tab-members">👥 Team Members <span class="badge" id="member-count">0</span></div>
+  <div class="tab" onclick="showTab('puzzles')" id="tab-puzzles">🧩 Puzzle Elements</div>
+  <div class="tab" onclick="showTab('cluechain')" id="tab-cluechain">🔗 Clue Chain</div>
+  <div class="tab" onclick="showTab('overview')" id="tab-overview">📋 Run Sheet</div>
+  <div class="tab" onclick="showTab('templates')" id="tab-templates">📐 Templates</div>
+</div>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Experience</div>
+      <div style="background:white; border:1.5px solid var(--border); border-radius:8px; padding:12px 14px;">
+        <div style="font-size:14px; font-weight:600;" id="exp-name-display">Untitled Experience</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:3px;" id="exp-company-display">No company set</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;" id="exp-date-display">No date set</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:10px; width:100%;" onclick="showModal('editExperience')">Edit Details</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Team Members</div>
+      <div id="member-list"></div>
+      <button class="add-member-btn" onclick="showModal('addMember')">+ Add Team Member</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Completion</div>
+      <div style="font-size:12px; color:var(--muted);">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span>Members filled in</span>
+          <span id="progress-text" style="font-weight:600; color:var(--ink);">0 / 0</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- MEMBERS PANEL -->
+    <div class="panel active" id="panel-members">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Team Members</div>
+          <div class="section-sub">Enter each person's survey responses here</div>
+        </div>
+        <button class="btn btn-coral" onclick="showModal('addMember')">+ Add Member</button>
+      </div>
+      <div class="tip-block">
+        💡 <strong>Labor-saving tip:</strong> Paste survey responses directly into each field. The more detail you capture here, the less you'll need to invent when building puzzle elements. All fields auto-save as you type.
+      </div>
+      <div id="member-detail-area">
+        <div class="empty-state">
+          <div class="icon">👤</div>
+          <p>No team members yet. Add your first team member to get started, or click a name in the sidebar once members are added.</p>
+          <button class="btn btn-coral" onclick="showModal('addMember')">Add First Member</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PUZZLES PANEL -->
+    <div class="panel" id="panel-puzzles">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Puzzle Elements</div>
+          <div class="section-sub">Assign puzzle formats to each team member's story</div>
+        </div>
+        <button class="btn btn-coral" onclick="showModal('addPuzzle')">+ Add Element</button>
+      </div>
+      <div class="info-block">
+        🧩 <strong>Your puzzle toolkit — from your examples:</strong> ID Badge, Classifieds Ad, Fake Business (Sushi), Personal Letter, Emoji Decoder, QR Code, Custom Image. Each element carries a clue that leads to the next reveal.
+      </div>
+      <div id="puzzle-list">
+        <div class="empty-state">
+          <div class="icon">🧩</div>
+          <p>No puzzle elements yet. Add members first, then assign puzzle formats to each person's story.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLUE CHAIN PANEL -->
+    <div class="panel" id="panel-cluechain">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Clue Chain</div>
+          <div class="section-sub">Map the sequence of reveals — who unlocks who</div>
+        </div>
+      </div>
+      <div class="info-block">
+        🔗 <strong>How the chain works:</strong> Each puzzle solve reveals a team member's story. That person then unlocks the next clue from their envelope. The chain ends when all stories are revealed and the team unlocks the final gift.
+      </div>
+      <div id="clue-chain-area">
+        <div class="empty-state">
+          <div class="icon">🔗</div>
+          <p>Add team members and puzzle elements to build your clue chain.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERVIEW / RUN SHEET PANEL -->
+    <div class="panel" id="panel-overview">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Run Sheet</div>
+          <div class="section-sub">Full experience at a glance — print or export</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="window.print()">🖨 Print</button>
+          <button class="btn btn-teal" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table class="overview-table" id="overview-table">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Fun Fact / Story</th>
+              <th>Photo</th>
+              <th>Snack</th>
+              <th>Puzzle Type</th>
+              <th>Clue Text</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="overview-body">
+            <tr><td colspan="7" style="text-align:center; padding:40px; color:var(--muted); font-size:13px;">Add team members to populate the run sheet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TEMPLATES PANEL -->
+    <div class="panel" id="panel-templates">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Puzzle Templates</div>
+          <div class="section-sub">Reusable formats based on your existing work</div>
+        </div>
+      </div>
+      <div class="tip-block">
+        ⚡ <strong>Reducing your direct labor:</strong> Each template below maps to a puzzle type you've already built. Clicking "Use Template" pre-fills the structure — you only need to swap in the member-specific content.
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+
+        <div class="export-card">
+          <div class="export-card-header">
+            <div class="export-card-title">🪪 Employee ID Badge</div>
+            <div class="export-card-desc">PraxisOT-style badge with photo + rhyming clue</div>
+          </div>
+          <div class="export-card-body">
+            <ul>
+              <li>Company name + tagline (use client's real company)</li>
+              <li>Member photo (use their submitted photo)</li>
+              <li>Employee ID number (encode a clue in the digits)</li>
+              <li>4-line rhyming clue → points to next person</li>
+            </ul>
+            <div style="margin-top:12px; padding:10px; background:var(--cream); border-radius:6px; font-size:11px; color:var(--muted); font-style:italic;">
+              "When credentials don't align / and access is denied, / Escalate to leadership— / keep the team unified."
+            </div>
+            <button class="btn btn-coral btn-sm" style="margin-top:12px;" onclick="useTemplate('id-badge')">Use Template →</button>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="export-card-header">
+            <div class="export-card-title">📰 Classifieds Ad</div>
+            <div class="export-card-desc">Fake newspaper with ads hiding clues in copy</div>
+          </div>
+          <div class="export-card-body">
+            <ul>
+              <li>Fake newspaper name (use city + "Classifieds")</li>
+              <li>Main ad uses member's fun fact as the product/service</li>
+              <li>Hidden clue in ad body text (first letter of each sentence)</li>
+              <li>Side column ads reference other team members' snacks</li>
+            </ul>
+            <div style="margin-top:12px; padding:10px; background:var(--cream); border-radius:6px; font-size:11px; color:var(--muted); font-style:italic;">
+              Hidden acrostic: bold or italic first letters spell out the next person's name or clue word.
+            </div>
+            <button class="btn btn-coral btn-sm" style="margin-top:12px;" onclick="useTemplate('classifieds')">Use Template →</button>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="export-card-header">
+            <div class="export-card-title">🍣 Fake Business Flyer</div>
+            <div class="export-card-desc">Satirical business built from member's fun fact</div>
+          </div>
+          <div class="export-card-body">
+            <ul>
+              <li>Business name derived from member's story or snack</li>
+              <li>Tagline is a pun or exaggeration of their fact</li>
+              <li>Fake "challenge" or event encodes the next clue</li>
+              <li>Address / phone number hides a combination code</li>
+            </ul>
+            <div style="margin-top:12px; padding:10px; background:var(--cream); border-radius:6px; font-size:11px; color:var(--muted); font-style:italic;">
+              Example: member eats 41 pieces of sushi → "SO RICE & REGRET CHALLENGE — beat the record: 41 pieces"
+            </div>
+            <button class="btn btn-coral btn-sm" style="margin-top:12px;" onclick="useTemplate('flyer')">Use Template →</button>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="export-card-header">
+            <div class="export-card-title">💌 Personal Letter</div>
+            <div class="export-card-desc">Letter from a fictional character (customer, vendor, etc.)</div>
+          </div>
+          <div class="export-card-body">
+            <ul>
+              <li>Letterhead uses client company name</li>
+              <li>Letter writer is a fictional fan of the company</li>
+              <li>Body text contains emojis that are clues (use decoder)</li>
+              <li>Sign-off name encodes next team member's initials</li>
+            </ul>
+            <div style="margin-top:12px; padding:10px; background:var(--cream); border-radius:6px; font-size:11px; color:var(--muted); font-style:italic;">
+              Pair with emoji decoder sheet — emojis in the letter = words that form next clue when decoded.
+            </div>
+            <button class="btn btn-coral btn-sm" style="margin-top:12px;" onclick="useTemplate('letter')">Use Template →</button>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="export-card-header">
+            <div class="export-card-title">😀 Emoji Decoder</div>
+            <div class="export-card-desc">Emoji → word lookup sheet + hidden message</div>
+          </div>
+          <div class="export-card-body">
+            <ul>
+              <li>Create a unique emoji-to-word key per experience</li>
+              <li>Hidden message in the decoder itself (first letters of words)</li>
+              <li>Combine with the letter or ID badge as a secondary clue</li>
+              <li>Watch dial image = "remaining minutes in your hands"</li>
+            </ul>
+            <div style="margin-top:12px; padding:10px; background:var(--cream); border-radius:6px; font-size:11px; color:var(--muted); font-style:italic;">
+              Hint text uses italic/bold formatting to hide an acrostic: "In every report, formatting matters. Strong ideas stand bold, creative ones lean in."
+            </div>
+            <button class="btn btn-coral btn-sm" style="margin-top:12px;" onclick="useTemplate('emoji')">Use Template →</button>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="export-card-header">
+            <div class="export-card-title">📱 QR Code Redirect</div>
+            <div class="export-card-desc">QR leads to a hidden page or unlocks next clue</div>
+          </div>
+          <div class="export-card-body">
+            <ul>
+              <li>QR links to a private Google Doc, Notion page, or short URL</li>
+              <li>Destination page contains the next clue or team member reveal</li>
+              <li>"Scan me!" design adds physical interactivity to the packet</li>
+              <li>Works well as a final unlock or combo-lock code reveal</li>
+            </ul>
+            <div style="margin-top:12px; padding:10px; background:var(--cream); border-radius:6px; font-size:11px; color:var(--muted); font-style:italic;">
+              Tool tip: qr-code-generator.com — free, no account needed. Set redirect URL per experience.
+            </div>
+            <button class="btn btn-coral btn-sm" style="margin-top:12px;" onclick="useTemplate('qr')">Use Template →</button>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="export-card-header">
+            <div class="export-card-title">🎨 Custom Portrait / Puzzle Image</div>
+            <div class="export-card-desc">AI-generated custom illustration from member's photo</div>
+          </div>
+          <div class="export-card-body">
+            <ul>
+              <li>Use member photo → AI cartoon/caricature (ChatGPT image gen)</li>
+              <li>Place in themed scene matching their fun fact</li>
+              <li>Wrap as physical jigsaw (puzzleprints.com ~$15/puzzle)</li>
+              <li>Completion image = final "CONGRATULATIONS" reveal poster</li>
+            </ul>
+            <div style="margin-top:12px; padding:10px; background:var(--cream); border-radius:6px; font-size:11px; color:var(--muted); font-style:italic;">
+              Final collage tip: compile all member stories into one illustrated scene for the congrats poster.
+            </div>
+            <button class="btn btn-coral btn-sm" style="margin-top:12px;" onclick="useTemplate('image')">Use Template →</button>
+          </div>
+        </div>
+
+        <div class="export-card" style="border-style:dashed; cursor:pointer;" onclick="showModal('addTemplate')">
+          <div class="export-card-header" style="background:transparent;">
+            <div class="export-card-title" style="color:var(--muted);">+ Custom Template</div>
+            <div class="export-card-desc">Add your own puzzle type</div>
+          </div>
+          <div class="export-card-body" style="color:var(--muted); font-size:13px; padding-top:8px;">
+            <p>Click to define a new puzzle format with your own clue structure and content checklist.</p>
+          </div>
+        </div>
+
+      </div><!-- end grid -->
+
+      <div class="card" style="margin-top:24px;">
+        <div class="card-title"><span class="dot"></span> Time-Saving Workflow</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; text-align:center;">
+          <div style="padding:14px; background:var(--cream); border-radius:8px;">
+            <div style="font-size:22px; margin-bottom:6px;">📋</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:4px;">1. Collect</div>
+            <div style="font-size:11px; color:var(--muted);">Use the survey. Paste responses into Member cards.</div>
+          </div>
+          <div style="padding:14px; background:var(--cream); border-radius:8px;">
+            <div style="font-size:22px; margin-bottom:6px;">🎯</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:4px;">2. Assign</div>
+            <div style="font-size:11px; color:var(--muted);">Pick a puzzle type per person. Use Run Sheet to track.</div>
+          </div>
+          <div style="padding:14px; background:var(--cream); border-radius:8px;">
+            <div style="font-size:22px; margin-bottom:6px;">✍️</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:4px;">3. Draft</div>
+            <div style="font-size:11px; color:var(--muted);">Use template structure. Swap in member content only.</div>
+          </div>
+          <div style="padding:14px; background:var(--cream); border-radius:8px;">
+            <div style="font-size:22px; margin-bottom:6px;">📦</div>
+            <div style="font-size:12px; font-weight:600; margin-bottom:4px;">4. Package</div>
+            <div style="font-size:11px; color:var(--muted);">Print, assemble packets, deliver. Done.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end templates panel -->
+  </div><!-- end content -->
+</div><!-- end main -->
+
+<!-- ── MODALS ── -->
+
+<!-- New / Edit Experience -->
+<div class="modal-backdrop" id="modal-editExperience">
+  <div class="modal">
+    <div class="modal-title">Experience Details</div>
+    <div class="form-grid">
+      <div class="field form-full">
+        <label>Experience Name</label>
+        <input type="text" id="exp-name" placeholder="e.g. PraxisOT PM Team – Spring 2026">
+      </div>
+      <div class="field">
+        <label>Client Company</label>
+        <input type="text" id="exp-company" placeholder="e.g. PraxisOT Systems">
+      </div>
+      <div class="field">
+        <label>Event Date</label>
+        <input type="text" id="exp-date" placeholder="e.g. May 15, 2026">
+      </div>
+      <div class="field">
+        <label>Team Lead Name</label>
+        <input type="text" id="exp-lead" placeholder="e.g. Sarah Johnson">
+      </div>
+      <div class="field">
+        <label>Team Lead Email</label>
+        <input type="email" id="exp-email" placeholder="sarah@company.com">
+      </div>
+      <div class="field form-full">
+        <label>Notes / Special Requests</label>
+        <textarea id="exp-notes" placeholder="Any special requests, themes, or constraints for this experience..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('editExperience')">Cancel</button>
+      <button class="btn btn-coral" onclick="saveExperience()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Experience (same as edit) -->
+<div class="modal-backdrop" id="modal-newExperience">
+  <div class="modal">
+    <div class="modal-title">New Experience</div>
+    <div class="form-grid">
+      <div class="field form-full">
+        <label>Experience Name</label>
+        <input type="text" id="new-exp-name" placeholder="e.g. Acme Corp Team Building – June 2026">
+      </div>
+      <div class="field">
+        <label>Client Company</label>
+        <input type="text" id="new-exp-company" placeholder="e.g. Acme Corp">
+      </div>
+      <div class="field">
+        <label>Event Date</label>
+        <input type="text" id="new-exp-date" placeholder="e.g. June 10, 2026">
+      </div>
+      <div class="field">
+        <label>Team Lead</label>
+        <input type="text" id="new-exp-lead" placeholder="Name">
+      </div>
+      <div class="field">
+        <label>Team Size (approx)</label>
+        <input type="text" id="new-exp-size" placeholder="e.g. 8">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('newExperience')">Cancel</button>
+      <button class="btn btn-coral" onclick="createExperience()">Create Experience</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Member -->
+<div class="modal-backdrop" id="modal-addMember">
+  <div class="modal">
+    <div class="modal-title">Add Team Member</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>First Name</label>
+        <input type="text" id="m-first" placeholder="First">
+      </div>
+      <div class="field">
+        <label>Last Name</label>
+        <input type="text" id="m-last" placeholder="Last">
+      </div>
+      <div class="field form-full">
+        <label>Role / Title</label>
+        <input type="text" id="m-role" placeholder="e.g. Project Manager, Sales Lead...">
+      </div>
+      <div class="field form-full">
+        <label>Fun Fact / Story</label>
+        <textarea id="m-fact" placeholder="Paste their survey response here — their story, talent, or memorable experience..."></textarea>
+      </div>
+      <div class="field form-full">
+        <label>Favorite Snack</label>
+        <input type="text" id="m-snack" placeholder="e.g. Flamin' Hot Cheetos (eaten with chopsticks)">
+      </div>
+      <div class="field form-full">
+        <label>Photo / Image Description</label>
+        <input type="text" id="m-photo" placeholder="e.g. Hawaii staircase hike photo, or describe the image...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('addMember')">Cancel</button>
+      <button class="btn btn-coral" onclick="addMember()">Add Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Puzzle Element -->
+<div class="modal-backdrop" id="modal-addPuzzle">
+  <div class="modal">
+    <div class="modal-title">Add Puzzle Element</div>
+    <div class="field">
+      <label>Assign to Member</label>
+      <select id="p-member">
+        <option value="">Select a team member...</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Puzzle Type</label>
+      <div class="puzzle-types" id="puzzle-type-selector">
+        <div class="puzzle-type-btn" onclick="selectType(this,'id-badge')">
+          <div class="puzzle-type-icon">🪪</div>
+          <div class="puzzle-type-label">ID Badge</div>
+        </div>
+        <div class="puzzle-type-btn" onclick="selectType(this,'classifieds')">
+          <div class="puzzle-type-icon">📰</div>
+          <div class="puzzle-type-label">Classifieds</div>
+        </div>
+        <div class="puzzle-type-btn" onclick="selectType(this,'flyer')">
+          <div class="puzzle-type-icon">🍣</div>
+          <div class="puzzle-type-label">Fake Flyer</div>
+        </div>
+        <div class="puzzle-type-btn" onclick="selectType(this,'letter')">
+          <div class="puzzle-type-icon">💌</div>
+          <div class="puzzle-type-label">Letter</div>
+        </div>
+        <div class="puzzle-type-btn" onclick="selectType(this,'emoji')">
+          <div class="puzzle-type-icon">😀</div>
+          <div class="puzzle-type-label">Emoji Decoder</div>
+        </div>
+        <div class="puzzle-type-btn" onclick="selectType(this,'qr')">
+          <div class="puzzle-type-icon">📱</div>
+          <div class="puzzle-type-label">QR Code</div>
+        </div>
+        <div class="puzzle-type-btn" onclick="selectType(this,'image')">
+          <div class="puzzle-type-icon">🎨</div>
+          <div class="puzzle-type-label">Custom Image</div>
+        </div>
+        <div class="puzzle-type-btn" onclick="selectType(this,'custom')">
+          <div class="puzzle-type-icon">✏️</div>
+          <div class="puzzle-type-label">Custom</div>
+        </div>
+      </div>
+      <input type="hidden" id="p-type" value="">
+    </div>
+    <div class="field">
+      <label>Clue Text (what this element reveals / points to)</label>
+      <textarea id="p-clue" placeholder="e.g. 'When credentials don't align and access is denied, escalate to leadership—keep the team unified.' → Points to: Alex (team lead)"></textarea>
+    </div>
+    <div class="field">
+      <label>Hidden Mechanic / Notes</label>
+      <input type="text" id="p-notes" placeholder="e.g. Acrostic in first letters, QR URL, combo lock digits...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('addPuzzle')">Cancel</button>
+      <button class="btn btn-coral" onclick="addPuzzle()">Add Element</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Modal -->
+<div class="modal-backdrop" id="modal-template">
+  <div class="modal">
+    <div class="modal-title" id="template-modal-title">Template: ID Badge</div>
+    <div id="template-modal-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('template')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Custom Template -->
+<div class="modal-backdrop" id="modal-addTemplate">
+  <div class="modal">
+    <div class="modal-title">New Custom Template</div>
+    <div class="field"><label>Template Name</label><input type="text" id="ct-name" placeholder="e.g. Crossword Clue"></div>
+    <div class="field"><label>Description</label><input type="text" id="ct-desc" placeholder="Short description of this puzzle format"></div>
+    <div class="field"><label>Content Checklist (one item per line)</label><textarea id="ct-checklist" placeholder="Member's photo&#10;Fun fact used as...&#10;Clue hidden in..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('addTemplate')">Cancel</button>
+      <button class="btn btn-coral" onclick="saveCustomTemplate()">Save Template</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let state = {
+  experience: { name: '', company: '', date: '', lead: '', email: '', notes: '' },
+  members: [],
+  puzzles: [],
+  activeMember: null
+};
+
+const AVATAR_COLORS = ['av0','av1','av2','av3','av4','av5','av6'];
+const TYPE_LABELS = {
+  'id-badge':'ID Badge','classifieds':'Classifieds','flyer':'Fake Flyer',
+  'letter':'Letter','emoji':'Emoji Decoder','qr':'QR Code','image':'Custom Image','custom':'Custom'
+};
+const TYPE_CLASSES = {
+  'id-badge':'type-id','classifieds':'type-classifieds','flyer':'type-sushi',
+  'letter':'type-letter','emoji':'type-emoji','qr':'type-qr','image':'type-image','custom':'type-custom'
+};
+
+const TEMPLATE_DATA = {
+  'id-badge': {
+    title: '🪪 ID Badge — Fill-In Guide',
+    fields: [
+      {label:'Company Name', hint:'Use the client\'s real company name + tagline'},
+      {label:'Employee ID Number', hint:'Encode a clue in the digits (e.g. 574230 = combo 5-7-4-2-3-0, or first digits = item #)'},
+      {label:'Member Photo', hint:'Use the photo they submitted in the survey'},
+      {label:'Clue Line 1 (sets up rhyme)', hint:''},
+      {label:'Clue Line 2', hint:''},
+      {label:'Clue Line 3', hint:''},
+      {label:'Clue Line 4 (resolution — points to next person/item)', hint:''},
+      {label:'Points To (next member or item)', hint:'Who or what does solving this reveal?'}
+    ]
+  },
+  'classifieds': {
+    title: '📰 Classifieds Ad — Fill-In Guide',
+    fields: [
+      {label:'Newspaper Name', hint:'e.g. "The [City] Classifieds" — use client\'s city'},
+      {label:'Date', hint:'Use event date or a meaningful fake date'},
+      {label:'Main Ad Headline', hint:'Based on member\'s fun fact — turn it into a product/service'},
+      {label:'Main Ad Body (hides acrostic clue)', hint:'First letter of each sentence spells out clue word or next person\'s name'},
+      {label:'Acrostic Answer', hint:'What does the hidden first-letter message spell?'},
+      {label:'Side Ad 1 (references another member\'s snack)', hint:''},
+      {label:'Side Ad 2 (references another member\'s fun fact)', hint:''},
+      {label:'Points To', hint:''}
+    ]
+  },
+  'flyer': {
+    title: '🍣 Fake Business Flyer — Fill-In Guide',
+    fields: [
+      {label:'Business Name', hint:'Derived from member\'s fun fact or snack — make it punny'},
+      {label:'Business Tagline', hint:'Exaggeration or absurdist spin on their story'},
+      {label:'Featured "Event" or "Challenge"', hint:'Encode clue in event details — record numbers, time, address'},
+      {label:'Hidden Number/Code', hint:'Combo lock digits hidden in address, phone, or price'},
+      {label:'Competition Start Time (= clue?)', hint:''},
+      {label:'Address (can hide digits)', hint:''},
+      {label:'Phone (can hide digits)', hint:''},
+      {label:'Points To', hint:''}
+    ]
+  },
+  'letter': {
+    title: '💌 Personal Letter — Fill-In Guide',
+    fields: [
+      {label:'Letter From (fictional character)', hint:'e.g. "A very happy OT customer" — use member\'s story as the context'},
+      {label:'Fictional Writer\'s Name', hint:'Initials should encode next team member\'s initials'},
+      {label:'Company Letterhead', hint:'Use client\'s real company name'},
+      {label:'Body Paragraph 1 (includes emojis)', hint:'Emojis here should be decodable using the Emoji Decoder sheet'},
+      {label:'Decoded Emoji Message', hint:'What do the emojis spell when decoded?'},
+      {label:'Signature Sign-off Clue', hint:'Hidden in sign-off name or closing phrase'},
+      {label:'Points To', hint:''}
+    ]
+  },
+  'emoji': {
+    title: '😀 Emoji Decoder — Fill-In Guide',
+    fields: [
+      {label:'Hint Text Line 1 (hides acrostic)', hint:'e.g. "In every report, formatting matters." — bold I = first letter'},
+      {label:'Hint Text Line 2', hint:'e.g. "Strong ideas stand bold, creative ones lean in." — bold S'},
+      {label:'Acrostic Answer from Hint Text', hint:'What do the italic/bold first letters spell?'},
+      {label:'Emoji Set (20-30 unique emojis + their word)', hint:'List each emoji = word mapping here'},
+      {label:'Visual Puzzle Element', hint:'e.g. watch face image = "remaining minutes in your hands"'},
+      {label:'Points To', hint:''}
+    ]
+  },
+  'qr': {
+    title: '📱 QR Code — Fill-In Guide',
+    fields: [
+      {label:'QR Destination URL', hint:'Link to private Google Doc, Notion page, or short URL service'},
+      {label:'What the URL Reveals', hint:'Next clue, combo code, member reveal, or "CONGRATULATIONS" page'},
+      {label:'QR Generator Tool', hint:'qr-code-generator.com or equivalents — free, no account needed'},
+      {label:'Label Under QR', hint:'e.g. "Scan me!" — can add a sub-hint'},
+      {label:'Points To', hint:''}
+    ]
+  },
+  'image': {
+    title: '🎨 Custom Image / Puzzle — Fill-In Guide',
+    fields: [
+      {label:'Member Photo (source)', hint:'Photo they submitted — used as AI art reference'},
+      {label:'Scene / Theme', hint:'Derived from their fun fact — what world are they in?'},
+      {label:'AI Generation Prompt', hint:'e.g. "Cartoon caricature of [person] dressed as Donald Duck in a lakeside Disney scene"'},
+      {label:'Jigsaw Print Service', hint:'puzzleprints.com, makeapuzzle.com — upload file, select piece count'},
+      {label:'Piece Count', hint:'More pieces = harder. 30-50 for casual events, 100+ for challenge'},
+      {label:'Clue Hidden In Image', hint:'e.g. text in background, item color, or completion unlocks next envelope'},
+      {label:'Points To', hint:''}
+    ]
+  }
+};
+
+// ── TABS ──
+function showTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'overview') renderOverview();
+  if (name === 'cluechain') renderClueChain();
+}
+
+// ── MODALS ──
+function showModal(name) {
+  if (name === 'editExperience') {
+    document.getElementById('exp-name').value = state.experience.name;
+    document.getElementById('exp-company').value = state.experience.company;
+    document.getElementById('exp-date').value = state.experience.date;
+    document.getElementById('exp-lead').value = state.experience.lead;
+    document.getElementById('exp-email').value = state.experience.email;
+    document.getElementById('exp-notes').value = state.experience.notes;
+  }
+  if (name === 'addPuzzle') {
+    const sel = document.getElementById('p-member');
+    sel.innerHTML = '<option value="">Select a team member...</option>';
+    state.members.forEach(m => {
+      sel.innerHTML += `<option value="${m.id}">${m.first} ${m.last}</option>`;
+    });
+  }
+  document.getElementById('modal-' + name).classList.add('open');
+}
+function closeModal(name) {
+  document.getElementById('modal-' + name).classList.remove('open');
+}
+document.querySelectorAll('.modal-backdrop').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── EXPERIENCE ──
+function saveExperience() {
+  state.experience.name = document.getElementById('exp-name').value;
+  state.experience.company = document.getElementById('exp-company').value;
+  state.experience.date = document.getElementById('exp-date').value;
+  state.experience.lead = document.getElementById('exp-lead').value;
+  state.experience.email = document.getElementById('exp-email').value;
+  state.experience.notes = document.getElementById('exp-notes').value;
+  document.getElementById('exp-name-display').textContent = state.experience.name || 'Untitled Experience';
+  document.getElementById('exp-company-display').textContent = state.experience.company || 'No company set';
+  document.getElementById('exp-date-display').textContent = state.experience.date || 'No date set';
+  closeModal('editExperience');
+}
+function createExperience() {
+  state.experience.name = document.getElementById('new-exp-name').value;
+  state.experience.company = document.getElementById('new-exp-company').value;
+  state.experience.date = document.getElementById('new-exp-date').value;
+  state.experience.lead = document.getElementById('new-exp-lead').value;
+  document.getElementById('exp-name-display').textContent = state.experience.name || 'Untitled Experience';
+  document.getElementById('exp-company-display').textContent = state.experience.company || 'No company set';
+  document.getElementById('exp-date-display').textContent = state.experience.date || 'No date set';
+  closeModal('newExperience');
+  showTab('members');
+}
+
+// ── MEMBERS ──
+function addMember() {
+  const first = document.getElementById('m-first').value.trim();
+  const last = document.getElementById('m-last').value.trim();
+  if (!first) { alert('First name is required'); return; }
+  const m = {
+    id: Date.now(),
+    first, last,
+    role: document.getElementById('m-role').value,
+    fact: document.getElementById('m-fact').value,
+    snack: document.getElementById('m-snack').value,
+    photo: document.getElementById('m-photo').value,
+    colorIdx: state.members.length % AVATAR_COLORS.length
+  };
+  state.members.push(m);
+  ['m-first','m-last','m-role','m-fact','m-snack','m-photo'].forEach(id => document.getElementById(id).value = '');
+  closeModal('addMember');
+  renderSidebar();
+  selectMember(m.id);
+  showTab('members');
+}
+
+function selectMember(id) {
+  state.activeMember = id;
+  renderSidebar();
+  renderMemberDetail();
+}
+
+function renderSidebar() {
+  const list = document.getElementById('member-list');
+  list.innerHTML = '';
+  state.members.forEach(m => {
+    const hasData = m.fact || m.snack || m.photo;
+    const puzzle = state.puzzles.find(p => p.memberId === m.id);
+    const isDone = hasData && puzzle;
+    list.innerHTML += `
+      <div class="member-card ${state.activeMember === m.id ? 'active' : ''}" onclick="selectMember(${m.id})">
+        <div class="avatar ${AVATAR_COLORS[m.colorIdx]}">${m.first[0]}${m.last ? m.last[0] : ''}</div>
+        <div>
+          <div class="member-name">${m.first} ${m.last}</div>
+          <div class="member-role">${m.role || 'No role set'}</div>
+        </div>
+        <div class="member-complete ${isDone ? 'done' : ''}"></div>
+      </div>`;
+  });
+  document.getElementById('member-count').textContent = state.members.length;
+  const done = state.members.filter(m => {
+    const p = state.puzzles.find(px => px.memberId === m.id);
+    return (m.fact || m.snack) && p;
+  }).length;
+  document.getElementById('progress-text').textContent = `${done} / ${state.members.length}`;
+  const pct = state.members.length ? Math.round(done / state.members.length * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function renderMemberDetail() {
+  const area = document.getElementById('member-detail-area');
+  const m = state.members.find(x => x.id === state.activeMember);
+  if (!m) { area.innerHTML = '<div class="empty-state"><div class="icon">👤</div><p>Select a team member from the sidebar to view and edit their details.</p></div>'; return; }
+  const puzzle = state.puzzles.find(p => p.memberId === m.id);
+  area.innerHTML = `
+    <div class="card">
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+        <div class="avatar ${AVATAR_COLORS[m.colorIdx]}" style="width:48px;height:48px;font-size:18px;">${m.first[0]}${m.last ? m.last[0] : ''}</div>
+        <div style="flex:1;">
+          <div style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700;">${m.first} ${m.last}</div>
+          <div style="font-size:13px; color:var(--muted);">${m.role || 'No role set'}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteMember(${m.id})">Remove</button>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>First Name</label>
+          <input type="text" value="${m.first}" onchange="updateMember(${m.id},'first',this.value)">
+        </div>
+        <div class="field">
+          <label>Last Name</label>
+          <input type="text" value="${m.last}" onchange="updateMember(${m.id},'last',this.value)">
+        </div>
+        <div class="field form-full">
+          <label>Role / Title</label>
+          <input type="text" value="${m.role}" placeholder="e.g. Project Manager" onchange="updateMember(${m.id},'role',this.value)">
+        </div>
+        <div class="field form-full">
+          <label>Fun Fact / Story (from survey)</label>
+          <textarea onchange="updateMember(${m.id},'fact',this.value)" placeholder="Paste their survey response here...">${m.fact}</textarea>
+        </div>
+        <div class="field form-full">
+          <label>Favorite Snack</label>
+          <input type="text" value="${m.snack}" placeholder="Be specific — the more detail the better" onchange="updateMember(${m.id},'snack',this.value)">
+        </div>
+        <div class="field form-full">
+          <label>Photo / Image Description</label>
+          <input type="text" value="${m.photo}" placeholder="Describe their photo or paste image URL" onchange="updateMember(${m.id},'photo',this.value)">
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--teal)"></span>Puzzle Assignment</div>
+      ${puzzle ? `
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <span class="item-type-badge ${TYPE_CLASSES[puzzle.type]}">${TYPE_LABELS[puzzle.type]}</span>
+            <div style="font-size:13px; margin-top:6px; color:var(--ink);">${puzzle.clue || '<em style="color:var(--muted)">No clue text added</em>'}</div>
+            ${puzzle.notes ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">↳ ${puzzle.notes}</div>` : ''}
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="deletePuzzle(${puzzle.id}); renderMemberDetail()">Change</button>
+        </div>
+      ` : `
+        <div style="color:var(--muted); font-size:13px; margin-bottom:12px;">No puzzle element assigned yet.</div>
+        <button class="btn btn-coral btn-sm" onclick="showModal('addPuzzle')">+ Assign Puzzle Element</button>
+      `}
+    </div>`;
+}
+
+function updateMember(id, field, value) {
+  const m = state.members.find(x => x.id === id);
+  if (m) { m[field] = value; renderSidebar(); }
+}
+function deleteMember(id) {
+  if (!confirm('Remove this team member?')) return;
+  state.members = state.members.filter(m => m.id !== id);
+  state.puzzles = state.puzzles.filter(p => p.memberId !== id);
+  state.activeMember = state.members.length ? state.members[0].id : null;
+  renderSidebar();
+  renderMemberDetail();
+}
+
+// ── PUZZLES ──
+let selectedPuzzleType = '';
+function selectType(el, type) {
+  document.querySelectorAll('.puzzle-type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPuzzleType = type;
+  document.getElementById('p-type').value = type;
+}
+
+function addPuzzle() {
+  const memberId = parseInt(document.getElementById('p-member').value);
+  const type = selectedPuzzleType;
+  if (!memberId) { alert('Select a team member'); return; }
+  if (!type) { alert('Select a puzzle type'); return; }
+  const existing = state.puzzles.find(p => p.memberId === memberId);
+  if (existing) { if (!confirm('This member already has a puzzle. Replace it?')) return; deletePuzzle(existing.id); }
+  state.puzzles.push({
+    id: Date.now(), memberId, type,
+    clue: document.getElementById('p-clue').value,
+    notes: document.getElementById('p-notes').value
+  });
+  document.getElementById('p-clue').value = '';
+  document.getElementById('p-notes').value = '';
+  document.getElementById('p-member').value = '';
+  selectedPuzzleType = '';
+  document.querySelectorAll('.puzzle-type-btn').forEach(b => b.classList.remove('selected'));
+  closeModal('addPuzzle');
+  renderSidebar();
+  renderPuzzleList();
+  renderMemberDetail();
+}
+
+function deletePuzzle(id) {
+  state.puzzles = state.puzzles.filter(p => p.id !== id);
+  renderPuzzleList();
+  renderSidebar();
+}
+
+function renderPuzzleList() {
+  const list = document.getElementById('puzzle-list');
+  if (!state.puzzles.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">🧩</div><p>No puzzle elements yet. Add members first, then assign puzzle formats.</p></div>';
+    return;
+  }
+  list.innerHTML = state.puzzles.map((p, i) => {
+    const m = state.members.find(x => x.id === p.memberId);
+    return `<div class="puzzle-item">
+      <div class="item-num">${i+1}</div>
+      <div class="item-body">
+        <span class="item-type-badge ${TYPE_CLASSES[p.type]}">${TYPE_LABELS[p.type]}</span>
+        <div style="font-size:13px; font-weight:600; margin-bottom:4px;">${m ? m.first + ' ' + m.last : 'Unknown'}</div>
+        <div style="font-size:13px; color:var(--ink); line-height:1.5;">${p.clue || '<em style="color:var(--muted)">No clue text</em>'}</div>
+        ${p.notes ? `<div style="font-size:11px; color:var(--muted); margin-top:4px;">↳ ${p.notes}</div>` : ''}
+      </div>
+      <div class="item-controls">
+        <button class="btn btn-danger btn-sm" onclick="deletePuzzle(${p.id})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CLUE CHAIN ──
+function renderClueChain() {
+  const area = document.getElementById('clue-chain-area');
+  if (!state.puzzles.length) {
+    area.innerHTML = '<div class="empty-state"><div class="icon">🔗</div><p>Add team members and puzzle elements to build your clue chain.</p></div>';
+    return;
+  }
+  const colors = ['#d85a30','#2a7c6f','#c49a3c','#7c3db5','#1a56b0','#b01a6a','#1a8044'];
+  area.innerHTML = '<div class="clue-chain">' +
+    state.puzzles.map((p, i) => {
+      const m = state.members.find(x => x.id === p.memberId);
+      const col = colors[i % colors.length];
+      const isLast = i === state.puzzles.length - 1;
+      return `<div class="chain-step">
+        <div class="chain-spine">
+          <div class="chain-node" style="background:${col}20; color:${col}; border:2px solid ${col};">${i+1}</div>
+          ${!isLast ? '<div class="chain-line"></div>' : ''}
+        </div>
+        <div class="chain-content">
+          <div class="chain-card">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span class="item-type-badge ${TYPE_CLASSES[p.type]}">${TYPE_LABELS[p.type]}</span>
+              <strong style="font-size:13px;">${m ? m.first + ' ' + m.last : 'Unknown'}</strong>
+              ${m ? `<span style="font-size:11px; color:var(--muted);">— ${m.role || ''}</span>` : ''}
+            </div>
+            ${m && m.fact ? `<div class="chain-label">Their Story</div><div class="chain-text" style="margin-bottom:10px;">${m.fact.substring(0,120)}${m.fact.length > 120 ? '...' : ''}</div>` : ''}
+            <div class="chain-label">Clue / What This Reveals</div>
+            <div class="chain-text">${p.clue || '<em style="color:var(--muted)">No clue text — add in Puzzle Elements tab</em>'}</div>
+            ${p.notes ? `<div style="margin-top:8px; font-size:11px; color:var(--muted); background:var(--cream); padding:6px 10px; border-radius:5px;">🔧 ${p.notes}</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('') +
+    `<div class="chain-step">
+      <div class="chain-spine"><div class="chain-node" style="background:#f0d98b; color:#7a5c00; border:2px solid #c49a3c;">🎁</div></div>
+      <div class="chain-content"><div class="chain-card" style="border-color:var(--gold); background:#fffdf4;">
+        <div style="font-size:13px; font-weight:600; color:var(--gold);">Final Reveal</div>
+        <div style="font-size:13px; color:var(--muted); margin-top:4px;">All stories unlocked → Team unlocks manager's gift 🎉</div>
+      </div></div>
+    </div>` +
+  '</div>';
+}
+
+// ── OVERVIEW / RUN SHEET ──
+function renderOverview() {
+  const body = document.getElementById('overview-body');
+  if (!state.members.length) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--muted); font-size:13px;">Add team members to populate the run sheet</td></tr>';
+    return;
+  }
+  body.innerHTML = state.members.map(m => {
+    const p = state.puzzles.find(px => px.memberId === m.id);
+    const hasData = m.fact || m.snack || m.photo;
+    const chipClass = !hasData ? 'chip-empty' : (p ? 'chip-done' : 'chip-partial');
+    const chipText = !hasData ? 'Empty' : (p ? 'Ready' : 'No puzzle');
+    return `<tr>
+      <td>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="avatar ${AVATAR_COLORS[m.colorIdx]}" style="width:28px;height:28px;font-size:11px;">${m.first[0]}${m.last?m.last[0]:''}</div>
+          <div>
+            <div style="font-weight:600;">${m.first} ${m.last}</div>
+            <div style="font-size:11px; color:var(--muted);">${m.role||''}</div>
+          </div>
+        </div>
+      </td>
+      <td style="max-width:200px;"><div style="font-size:12px; line-height:1.5;">${m.fact ? m.fact.substring(0,100) + (m.fact.length>100?'…':'') : '<span style="color:var(--muted)">—</span>'}</div></td>
+      <td><div style="font-size:12px;">${m.photo || '<span style="color:var(--muted)">—</span>'}</div></td>
+      <td><div style="font-size:12px;">${m.snack || '<span style="color:var(--muted)">—</span>'}</div></td>
+      <td>${p ? `<span class="item-type-badge ${TYPE_CLASSES[p.type]}">${TYPE_LABELS[p.type]}</span>` : '<span style="color:var(--muted); font-size:12px;">—</span>'}</td>
+      <td style="max-width:180px;"><div style="font-size:12px; line-height:1.5;">${p&&p.clue ? p.clue.substring(0,80)+(p.clue.length>80?'…':'') : '<span style="color:var(--muted)">—</span>'}</div></td>
+      <td><span class="chip ${chipClass}">${chipText}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── TEMPLATES ──
+function useTemplate(type) {
+  const data = TEMPLATE_DATA[type];
+  if (!data) { showModal('template'); return; }
+  document.getElementById('template-modal-title').textContent = data.title;
+  document.getElementById('template-modal-content').innerHTML =
+    '<div class="info-block" style="margin-bottom:16px;">Fill in each field below, then use your preferred design tool (Pages, Canva, Photoshop) to drop the content into your template layout.</div>' +
+    data.fields.map((f, i) => `
+      <div class="field">
+        <label>${f.label}</label>
+        ${f.hint ? `<div style="font-size:11px; color:var(--muted); margin-bottom:5px; font-style:italic;">${f.hint}</div>` : ''}
+        <${f.label.toLowerCase().includes('body') || f.label.toLowerCase().includes('paragraph') ? 'textarea' : 'input type="text"'} placeholder="Enter ${f.label.toLowerCase()}..."></${ f.label.toLowerCase().includes('body') || f.label.toLowerCase().includes('paragraph') ? 'textarea' : 'input'}>
+      </div>`).join('') +
+    `<div class="tip-block" style="margin-top:8px;">💡 When done, copy these values into your design file. This template maps exactly to the puzzle format — no reinventing needed.</div>`;
+  showModal('template');
+}
+
+function saveCustomTemplate() {
+  closeModal('addTemplate');
+  alert('Custom template saved! (In a future version, this will appear in your template grid.)');
+}
+
+// ── EXPORT CSV ──
+function exportCSV() {
+  const rows = [['Member','Role','Fun Fact','Snack','Photo','Puzzle Type','Clue Text','Notes','Status']];
+  state.members.forEach(m => {
+    const p = state.puzzles.find(px => px.memberId === m.id);
+    const status = !m.fact && !m.snack ? 'Empty' : (p ? 'Ready' : 'No Puzzle');
+    rows.push([
+      `${m.first} ${m.last}`, m.role||'', m.fact||'', m.snack||'', m.photo||'',
+      p ? TYPE_LABELS[p.type] : '', p ? p.clue||'' : '', p ? p.notes||'' : '', status
+    ]);
+  });
+  const csv = rows.map(r => r.map(c => `"${(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (state.experience.company || 'Experience') + '_RunSheet.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── DEMO DATA ──
+function loadDemo() {
+  state.experience = { name: 'PraxisOT PM Team – Spring 2026', company: 'PraxisOT Systems', date: 'March 1, 2026', lead: 'Sarah Johnson', email: 'sarah@praxisot.com', notes: 'Remote team, physical packets mailed in advance.' };
+  document.getElementById('exp-name-display').textContent = state.experience.name;
+  document.getElementById('exp-company-display').textContent = state.experience.company;
+  document.getElementById('exp-date-display').textContent = state.experience.date;
+
+  const members = [
+    { first:'Alex', last:'R', role:'Project Manager', fact:'Once quit a job, booked a one-way flight, and figured it out. Shockingly worked out.', snack:'Takis (will notice if it\'s missing)', photo:'Sunny sunrise photo from early morning runs' },
+    { first:'Jordan', last:'M', role:'Developer', fact:'My dog mid-interview looking possessed. Accidentally joined the wrong Zoom interview and tried to interview anyway.', snack:'Gummy candy of any kind', photo:'Dog photo' },
+    { first:'Priya', last:'K', role:'Designer', fact:'Made a ceramic bowl slightly too small for cereal. Regretted it immediately.', snack:'Cold brew coffee, even when it\'s cold outside', photo:'Hawaii Pillbox hike stairs photo' },
+    { first:'Sam', last:'L', role:'Sales', fact:'An unfinished Lego set "in progress" for over a year. Accepted a job without reading it.', snack:'Popcorn in any flavor, especially if it\'s a little weird', photo:'Lego set photo' },
+    { first:'Maria', last:'T', role:'Marketing', fact:'Worked three jobs during school and somehow cannot relax with a schedule.', snack:'Dark chocolate with sea salt', photo:'Family board game night photo' },
+    { first:'Chris', last:'W', role:'Operations', fact:'My home coffee setup is meticulously organized. Trained for a marathon on a dare and somehow finished it.', snack:'Iced lattes, regardless of season', photo:'Coffee setup photo' },
+  ];
+  members.forEach((m, i) => { m.id = Date.now() + i; m.colorIdx = i % AVATAR_COLORS.length; state.members.push(m); });
+
+  const puzzleTypes = ['id-badge','classifieds','flyer','letter','emoji','qr'];
+  const clues = [
+    'When credentials don\'t align / and access is denied, / Escalate to leadership— / keep the team unified.',
+    'Premium talent, sustainably grown. First letter of each sentence will show you where to go next.',
+    'SO RICE & REGRET CHALLENGE — beat the record: 41 pieces. Competition starts at 4:30 PM → combo: 4-3-0.',
+    'I just wanted to take a moment to say THANK YOU 🌅💙🌿✨— decode the emojis to find your next clue.',
+    'In every report, formatting matters. Strong ideas stand bold. → IS → find the person with the initials I.S.',
+    'Scan to unlock the team\'s collective digital story.'
+  ];
+  state.members.forEach((m, i) => {
+    state.puzzles.push({ id: Date.now() + 100 + i, memberId: m.id, type: puzzleTypes[i], clue: clues[i], notes: '' });
+  });
+  state.activeMember = state.members[0].id;
+  renderSidebar();
+  renderMemberDetail();
+  renderPuzzleList();
+}
+
+// ── INIT ──
+loadDemo();
+</script>
+</body>
+</html>
